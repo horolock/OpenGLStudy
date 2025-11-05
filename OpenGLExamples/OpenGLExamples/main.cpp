@@ -14,8 +14,8 @@ const unsigned int WIN_H = 500;
 const unsigned int WIN_X = 100;
 const unsigned int WIN_Y = 100;
 
-const std::string vertFileName = "simple-tri.vert";
-const std::string fragFileName = "simple-tri.frag";
+const std::string vertFileName = "colored-tri.vert";
+const std::string fragFileName = "colored-tri.frag";
 
 GLuint vert = 0;
 GLuint frag = 0;
@@ -25,6 +25,12 @@ GLfloat vertexPos[] = {
 	-0.5F, -0.5F, 0.0F, 1.0F,
 	+0.5F, -0.5F, 0.0F, 1.0F,
 	-0.5F, +0.5F, 0.0F, 1.0F,
+};
+
+GLfloat vertColor[] = {
+	1.0F, 0.0F, 0.0F, 1.0F,
+	0.0F, 1.0F, 0.0F, 1.0F,
+	0.0F, 0.0F, 1.0F, 1.0F,
 };
 
 void initFunc(void) {
@@ -55,9 +61,14 @@ void initFunc(void) {
 
 void drawFunc(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
-	GLuint loc = glGetAttribLocation(prog, "vertexPos");
+
+	GLuint loc = glGetAttribLocation(prog, "aPos");
 	glEnableVertexAttribArray(loc);
 	glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, 0, vertexPos);
+
+	loc = glGetAttribLocation(prog, "aColor");
+	glEnableVertexAttribArray(loc);
+	glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, 0, vertColor);
 
 	// Draw Triangle
 	glDrawArrays(GL_TRIANGLES, 0, 3);

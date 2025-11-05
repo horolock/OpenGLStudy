@@ -31,5 +31,11 @@
     <None Include="simple-tri.frag">
       <Filter>리소스 파일</Filter>
     </None>
+    <None Include="colored-tri.vert">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="colored-tri.frag">
+      <Filter>리소스 파일</Filter>
+    </None>
   </ItemGroup>
 </Project>

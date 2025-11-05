@@ -25,6 +25,8 @@
     <ClInclude Include="common.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="colored-tri.frag" />
+    <None Include="colored-tri.vert" />
     <None Include="simple-tri.frag" />
     <None Include="simple-tri.vert" />
   </ItemGroup>
