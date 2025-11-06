@@ -14,17 +14,17 @@ const unsigned int WIN_H = 500;
 const unsigned int WIN_X = 100;
 const unsigned int WIN_Y = 100;
 
-const std::string vertFileName = "colored-tri.vert";
-const std::string fragFileName = "colored-tri.frag";
+const std::string vertFileName = "uniform-tri.vert";
+const std::string fragFileName = "uniform-tri.frag";
 
 GLuint vert = 0;
 GLuint frag = 0;
 GLuint prog = 0;
 
 GLfloat vertexPos[] = {
-	-0.5F, -0.5F, 0.0F, 1.0F,
-	+0.5F, -0.5F, 0.0F, 1.0F,
-	-0.5F, +0.5F, 0.0F, 1.0F,
+	0.0F, 0.0F, 0.0F, 1.0F,
+	+0.5F, +0.0F, 0.0F, 1.0F,
+	+0.0F, +0.5F, 0.0F, 1.0F,
 };
 
 GLfloat vertColor[] = {
@@ -69,6 +69,12 @@ void drawFunc(void) {
 	loc = glGetAttribLocation(prog, "aColor");
 	glEnableVertexAttribArray(loc);
 	glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, 0, vertColor);
+
+	GLuint locMove = glGetUniformLocation(prog, "uMove");
+	glUniform4f(locMove, -0.5F, -0.5F, 0.0F, 0.0F);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glUniform4f(locMove, 0.0F, 0.0F, 0.0F, 0.0F);
 
 	// Draw Triangle
 	glDrawArrays(GL_TRIANGLES, 0, 3);

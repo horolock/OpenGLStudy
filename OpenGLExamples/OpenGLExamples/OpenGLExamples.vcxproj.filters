@@ -37,5 +37,11 @@
     <None Include="colored-tri.frag">
       <Filter>리소스 파일</Filter>
     </None>
+    <None Include="uniform-tri.vert">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="uniform-tri.frag">
+      <Filter>리소스 파일</Filter>
+    </None>
   </ItemGroup>
 </Project>

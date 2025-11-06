@@ -29,6 +29,8 @@
     <None Include="colored-tri.vert" />
     <None Include="simple-tri.frag" />
     <None Include="simple-tri.vert" />
+    <None Include="uniform-tri.frag" />
+    <None Include="uniform-tri.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
