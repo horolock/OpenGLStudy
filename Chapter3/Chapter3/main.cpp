@@ -5,6 +5,12 @@
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "glfw3.lib")
 
+#define GLM_ENABLE_EXPERIMENTAL
+#define GLM_FORCE_SWIZZLE
+#include <glm/glm.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "common.hpp"
 
 const unsigned int WIN_W = 500;
@@ -22,25 +28,26 @@ GLuint vert = 0;
 GLuint frag = 0;
 GLuint prog = 0;
 
-GLfloat vertPos[] = {
-	-0.5F, 0.5F, 0.0F, 1.0F,
-	-0.5F, -0.5F, 0.0F, 1.0F,
-	+0.5F, -0.5F, 0.0F, 1.0F
+// MARK: - Rotation Related
+float theta = 0.0F;
+const float thetaStep = 0.01F;
+
+glm::vec4 vertPos[] = {
+	{-0.5F, +0.5F, 0.0F, 1.0F},
+	{-0.5F, -0.5F, 0.0F, 1.0F},
+	{+0.5F, -0.5F, 0.0F, 1.0F},
 };
 
-GLfloat vertColor[] = {
-	1.0F, 0.0F, 0.0F, 1.0F,
-	0.0F, 1.0F, 0.0F, 1.0F,
-	0.0F, 0.0F, 1.0F, 1.0F
+glm::vec4 rotatePos[3];
+
+glm::vec4 vertColor[] = {
+	{1.0F, 0.0F, 0.0F, 1.0F},
+	{0.0F, 1.0F, 0.0F, 1.0F},
+	{0.0F, 0.0F, 1.0F, 1.0F},
 };
 
-GLfloat originMove[] = {
-	0.0F, 0.0F, 0.0F, 0.0F
-};
-
-GLfloat currentMove[] = {
-	0.0F, 0.0F, 0.0F, 0.0F
-};
+const glm::vec4 originMove = glm::vec4(0.0F, 0.0F, 0.0F, 0.0F);
+glm::vec4 currentMove = glm::vec4(0.0F, 0.0F, 0.0F, 0.0F);
 
 void initFunc() {
 	std::string vertSource = loadFile(vertFileName);
@@ -89,13 +96,28 @@ void initFunc() {
 	glUseProgram(prog);
 }
 
-void updateFunc() {
+void rotateFunc() {
+	theta += thetaStep;
+
+	/*for (int i = 0; i < 3; i++) {
+		rotatePos[i].x = vertPos[i].x * cosf(theta) - vertPos[i].y * sinf(theta);
+		rotatePos[i].y = vertPos[i].x * sinf(theta) + vertPos[i].y * cosf(theta);
+		rotatePos[i].z = vertPos[i].z;
+		rotatePos[i].w = vertPos[i].w;
+	}*/
+}
+
+void moveXFunc() {
 	// Move X-axis 
-	currentMove[0] += step;
+	currentMove.x += step;
 
 	if (currentMove[0] >= 1.6F) {
-		memcpy_s(currentMove, sizeof(currentMove), originMove, sizeof(originMove));
+		currentMove = originMove;
 	}
+}
+
+void updateFunc() {
+	rotateFunc();
 }
 
 void drawFunc() {
@@ -103,14 +125,19 @@ void drawFunc() {
 
 	GLuint locPos = glGetAttribLocation(prog, "aPos");
 	glEnableVertexAttribArray(locPos);
-	glVertexAttribPointer(locPos, 4, GL_FLOAT, GL_FALSE, 0, vertPos);
+	glVertexAttribPointer(locPos, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(vertPos[0]));
+	//glVertexAttribPointer(locPos, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(rotatePos[0]));
 
 	GLuint locColor = glGetAttribLocation(prog, "aColor");
 	glEnableVertexAttribArray(locColor);
-	glVertexAttribPointer(locColor, 4, GL_FLOAT, GL_FALSE, 0, vertColor);
+	glVertexAttribPointer(locColor, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(vertColor[0]));
 
 	GLuint locMove = glGetUniformLocation(prog, "uMove");
-	glUniform4f(locMove, currentMove[0], currentMove[1], currentMove[2], currentMove[3]);
+	glUniform4fv(locMove, 1, glm::value_ptr(currentMove));
+
+	GLuint locTheta = glGetUniformLocation(prog, "uTheta");
+	glUniform1f(locTheta, theta);
+
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	glFinish();
@@ -132,7 +159,8 @@ void keyFunc(GLFWwindow* window, int key, int scanCode, int action, int mods) {
 		break;
 	case GLFW_KEY_R:
 		if (action == GLFW_PRESS) {
-			memcpy_s(currentMove, sizeof(currentMove), originMove, sizeof(originMove));
+			currentMove = originMove;
+			theta = 0;
 		}
 		break;
 	}
