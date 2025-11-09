@@ -35,15 +35,21 @@ GLuint prog = 0;
 std::chrono::system_clock::time_point lastTime = std::chrono::system_clock::now();
 
 glm::vec4 vertPos[3] = {
-	{ -0.5F, -0.5F, 0.0F, 1.0F, },
-	{ +0.5F, -0.5F, 0.0F, 1.0F, },
-	{ -0.5F, +0.5F, 0.0F, 1.0F, },
+	{ -0.5F, -0.5F, 0.8F, 1.0F, },
+	{ +0.5F, -0.5F, 0.8F, 1.0F, },
+	{ -0.5F, +0.5F, 0.8F, 1.0F, },
 };
 
 glm::vec4 vertColor[] = {
 	{ 1.0F, 0.0F, 0.0F, 1.0F, },
 	{ 0.0F, 1.0F, 0.0F, 1.0F, },
 	{ 0.0F, 0.0F, 1.0F, 1.0F, },
+};
+
+glm::vec4 smallTriPos[] = {
+	{-0.1F, -0.1F, 0.4F, 1.0F},
+	{+0.1F, -0.1F, 0.4F, 1.0F},
+	{-0.1F, +0.1F, 0.4F, 1.0F}
 };
 
 void initFunc(void) {
@@ -102,11 +108,17 @@ void initFunc(void) {
 void updateFunc() {
 	std::chrono::system_clock::time_point currentTime = std::chrono::system_clock::now();
 	std::chrono::milliseconds elapsedTimeMSEC = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastTime);
-	theta = (elapsedTimeMSEC.count() / 1000.0F) * (float)M_PI_2;
+	theta = (elapsedTimeMSEC.count() / 1000.0F) * (float)M_PI_2 / 4.0F;
 }
 
 void drawFunc() {
-	glClear(GL_COLOR_BUFFER_BIT);
+	// Depth Buffer
+	glEnable(GL_DEPTH_TEST);
+	glDepthRange(0.0F, 1.0F);
+	glClearDepthf(1.0F);
+
+	// Clear in gray color
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	GLuint locPos = glGetAttribLocation(prog, "aPos");
 	glEnableVertexAttribArray(locPos);
@@ -116,11 +128,13 @@ void drawFunc() {
 	glEnableVertexAttribArray(locColor);
 	glVertexAttribPointer(locColor, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(vertColor[0]));
 
-	// Draw the triangle
 	GLuint locTheta = glGetUniformLocation(prog, "uTheta");
 	glUniform1f(locTheta, theta);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
+	glVertexAttribPointer(locPos, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(smallTriPos[0]));
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+	
 	// Done
 	glFinish();
 }
