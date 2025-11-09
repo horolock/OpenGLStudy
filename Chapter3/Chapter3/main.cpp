@@ -30,7 +30,40 @@ GLuint prog = 0;
 
 // MARK: - Rotation Related
 float theta = 0.0F;
-const float thetaStep = 0.01F;
+const float thetaStep = 0.00F;
+
+const float playerMoveStep = 0.02F;
+
+glm::vec4 playerPos[] = {
+	{ 0.0F, +0.1F, 0.0F, 1.0F },
+	{ -0.1F, 0.0F, 0.0F, 1.0F },
+	{ +0.1F, 0.0F, 0.0F, 1.0F }
+};
+
+glm::vec4 playerColor[] = {
+	{ 0.0F, 1.0F, 0.0F, 1.0F },
+	{ 0.0F, 1.0F, 0.0F, 1.0F },
+	{ 0.0F, 1.0F, 0.0F, 1.0F }
+};
+
+glm::vec4 currentPlayerPos = glm::vec4(0.0F, -0.5F, 0.0F, 0.0F);
+
+const float enemyMoveStep = 0.0001F;
+
+glm::vec4 enemyPos[] = {
+	{-0.1F, +0.1F, 0.0F, 1.0F},
+	{0.0F, 0.0F, 0.0F, 1.0F},
+	{0.1F, 0.1F, 0.0F, 1.0F}
+};
+
+glm::vec4 enemyColor[] = {
+	{ 1.0F, 0.0F, 0.0F, 1.0F },
+	{ 1.0F, 0.0F, 0.0F, 1.0F },
+	{ 1.0F, 0.0F, 0.0F, 1.0F }
+};
+
+glm::vec4 currentEnemyPos = glm::vec4(0.0F, +0.5F, 0.0F, 0.0F);
+
 
 glm::vec4 vertPos[] = {
 	{-0.5F, +0.5F, 0.0F, 1.0F},
@@ -98,13 +131,7 @@ void initFunc() {
 
 void rotateFunc() {
 	theta += thetaStep;
-
-	/*for (int i = 0; i < 3; i++) {
-		rotatePos[i].x = vertPos[i].x * cosf(theta) - vertPos[i].y * sinf(theta);
-		rotatePos[i].y = vertPos[i].x * sinf(theta) + vertPos[i].y * cosf(theta);
-		rotatePos[i].z = vertPos[i].z;
-		rotatePos[i].w = vertPos[i].w;
-	}*/
+	currentEnemyPos.y -= enemyMoveStep;
 }
 
 void moveXFunc() {
@@ -125,18 +152,31 @@ void drawFunc() {
 
 	GLuint locPos = glGetAttribLocation(prog, "aPos");
 	glEnableVertexAttribArray(locPos);
-	glVertexAttribPointer(locPos, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(vertPos[0]));
+	glVertexAttribPointer(locPos, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(playerPos[0]));
 	//glVertexAttribPointer(locPos, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(rotatePos[0]));
 
 	GLuint locColor = glGetAttribLocation(prog, "aColor");
 	glEnableVertexAttribArray(locColor);
-	glVertexAttribPointer(locColor, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(vertColor[0]));
+	glVertexAttribPointer(locColor, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(playerColor[0]));
 
 	GLuint locMove = glGetUniformLocation(prog, "uMove");
-	glUniform4fv(locMove, 1, glm::value_ptr(currentMove));
+	glUniform4fv(locMove, 1, glm::value_ptr(currentPlayerPos));
 
 	GLuint locTheta = glGetUniformLocation(prog, "uTheta");
 	glUniform1f(locTheta, theta);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	locPos = glGetAttribLocation(prog, "aPos");
+	glEnableVertexAttribArray(locPos);
+	glVertexAttribPointer(locPos, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(enemyPos[0]));
+
+	locColor = glGetAttribLocation(prog, "aColor");
+	glEnableVertexAttribArray(locColor);
+	glVertexAttribPointer(locColor, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(enemyColor[0]));
+
+	locMove = glGetUniformLocation(prog, "uMove");
+	glUniform4fv(locMove, 1, glm::value_ptr(currentEnemyPos));
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -161,6 +201,17 @@ void keyFunc(GLFWwindow* window, int key, int scanCode, int action, int mods) {
 		if (action == GLFW_PRESS) {
 			currentMove = originMove;
 			theta = 0;
+		}
+		break;
+
+	case GLFW_KEY_A:
+		if (action == GLFW_REPEAT || action == GLFW_PRESS) {
+			currentPlayerPos.x -= playerMoveStep;
+		}
+		break;
+	case GLFW_KEY_D:
+		if (action == GLFW_REPEAT || action == GLFW_PRESS) {
+			currentPlayerPos.x += playerMoveStep;
 		}
 		break;
 	}
