@@ -63,12 +63,11 @@ void initFunc(void) {
 	vert = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vert, 1, &vertShader, nullptr);
 	glCompileShader(vert);
+
+	// Check Vertex Shader
 	glGetShaderiv(vert, GL_COMPILE_STATUS, &status);
-
 	std::cout << "Vert Compile = " << ((status == GL_TRUE) ? "true" : "false") << std::endl;
-	
 	glGetShaderInfoLog(vert, sizeof(buf), nullptr, buf);
-
 	std::cout << "Vert Log [" << buf << "]" << std::endl;
 
 	// Frag
@@ -78,6 +77,7 @@ void initFunc(void) {
 	glCompileShader(frag);
 	glGetShaderiv(frag, GL_COMPILE_STATUS, &status);
 
+	// Check Fragment Shader
 	std::cout << "Frag Compile = " << ((status == GL_TRUE) ? "true" : "false") << std::endl;
 	glGetShaderInfoLog(frag, sizeof(buf), nullptr, buf);
 	std::cout << "Frag Log [" << buf << "]" << std::endl;
@@ -88,16 +88,13 @@ void initFunc(void) {
 	glAttachShader(prog, frag);
 	glLinkProgram(prog);
 
+	// Check Program
 	glGetProgramiv(prog, GL_LINK_STATUS, &status);
-
 	std::cout << "Prog Link Status = " << ((status == GL_TRUE) ? "true" : "false") << std::endl;
 	glGetProgramInfoLog(prog, sizeof(buf), nullptr, buf);
 	std::cout << "Link Log [" << buf << "]" << std::endl;
-
 	glValidateProgram(prog);
-
 	glGetProgramiv(prog, GL_VALIDATE_STATUS, &status);
-
 	std::cout << "Prog Validate Status = " << ((status == GL_TRUE) ? "true" : "false") << std::endl;
 	glGetProgramInfoLog(prog, sizeof(buf), nullptr, buf);
 	std::cout << "Validate Log [" << buf << "]" << std::endl;
