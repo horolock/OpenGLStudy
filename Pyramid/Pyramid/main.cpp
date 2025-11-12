@@ -4,7 +4,7 @@
 using namespace std;
 
 #define GLM_FORCE_SWIZZLE
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -85,10 +85,92 @@ glm::vec4 vertColor[] = {
 };
 
 void initFunc(void) {
-	const char* vertSource = loadFile(vertFileName).c_str();
-	const char* fragSource = loadFile(fragFileName).c_str();
+	const std::string vertStr = loadFile(vertFileName);
+	const std::string fragStr = loadFile(fragFileName);
+	const char* vertSource = vertStr.c_str();
+	const char* fragSource = fragStr.c_str();
 	char buf[1024];
 	GLint status;
 
+	// Vertex Shader
+	vert = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vert, 1, &vertSource, nullptr);
+	glCompileShader(vert);
 
+	// Fragment Shader
+	frag = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(frag, 1, &fragSource, nullptr);
+	glCompileShader(frag);
+
+	// Program
+	prog = glCreateProgram();
+	glAttachShader(prog, vert);
+	glAttachShader(prog, frag);
+
+	glLinkProgram(prog);
+	glValidateProgram(prog);
+	glUseProgram(prog);
+}
+
+void drawFunc(void) {
+	glEnable(GL_DEPTH_TEST);
+	glDepthRange(0.0F, 1.0F);
+	glClearDepthf(1.0F);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	GLuint locPos = glGetAttribLocation(prog, "aPos");
+	glEnableVertexAttribArray(locPos);
+	glVertexAttribPointer(locPos, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(vertPos[0]));
+
+	GLuint locColor = glGetAttribLocation(prog, "aColor");
+	glEnableVertexAttribArray(locColor);
+	glVertexAttribPointer(locColor, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(vertColor[0]));
+
+	glDrawArrays(GL_TRIANGLES, 0, 18);
+
+	glFinish();
+}
+
+void refreshFunc(GLFWwindow* window) {
+	drawFunc();
+	glfwSwapBuffers(window);
+}
+
+void keyFunc(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	switch (key) {
+	case GLFW_KEY_ESCAPE:
+		if (action == GLFW_PRESS) {
+			glfwSetWindowShouldClose(window, GL_TRUE);
+		}
+		break;
+	}
+}
+
+int main(int argc, char* argv[]) {
+	glfwInit();
+	glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+	GLFWwindow* window = glfwCreateWindow(WIN_W, WIN_H, "Pyramid", nullptr, nullptr);
+	glfwSetWindowPos(window, WIN_X, WIN_Y);
+	glfwMakeContextCurrent(window);
+	glewInit();
+
+	// Prepare
+	glfwSetWindowRefreshCallback(window, refreshFunc);
+	glfwSetKeyCallback(window, keyFunc);
+
+	glClearColor(0.5F, 0.5F, 0.5F, 1.0F);
+
+	initFunc();
+
+	while (!glfwWindowShouldClose(window)) {
+		//updateFunc()
+		drawFunc();
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+
+	glfwTerminate();
+
+	return 0;
 }
