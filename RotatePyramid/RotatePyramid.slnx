@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="RotatePyramid/RotatePyramid.vcxproj" Id="3b0292fb-fdf4-45c1-99a1-0521dbb4a14e" />
+</Solution>

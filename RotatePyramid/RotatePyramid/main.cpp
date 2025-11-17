@@ -1,7 +1,10 @@
-
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <chrono>
 #include <iostream>
 
 using namespace std;
+using namespace std::chrono;
 
 #define GLM_FORCE_SWIZZLE
 #define GLM_ENABLE_EXPERIMENTAL
@@ -18,45 +21,46 @@ using namespace std;
 
 #include "common.hpp"
 
-const unsigned int WIN_W = 500;
-const unsigned int WIN_H = 500;
-const unsigned int WIN_X = 100;
-const unsigned int WIN_Y = 100;
-
-const std::string vertFileName = "colored-tri.vert";
-const std::string fragFileName = "colored-tri.frag";
+const std::string vertFileName = "rotate-nz.vert";
+const std::string fragFileName = "rotate-nz.frag";
 
 GLuint vert = 0;
 GLuint frag = 0;
 GLuint prog = 0;
 
-int cullMode = 0;
-
-glm::vec4 vertPos[] = { // 6 * 3 = 18 vertices
+glm::vec4 vertPos[] = {
 	// face 0: v0-v1-v2
 	{ 0.0F, 0.5F, 0.0F, 1.0F }, // v0
 	{ 0.5F, -0.3F, 0.0F, 1.0F }, // v1
-	{ 0.0F, -0.3F, 0.5F, 1.0F }, // v2
+	{ 0.0F, -0.3F, -0.5F, 1.0F }, // v2
 	// face 1: v0-v2-v3
 	{ 0.0F, 0.5F, 0.0F, 1.0F }, // v0
-	{ 0.0F, -0.3F, 0.5F, 1.0F }, // v2
+	{ 0.0F, -0.3F, -0.5F, 1.0F }, // v2
 	{ -0.5F, -0.3F, 0.0F, 1.0F }, // v3
 	// face 2: v0-v3-v4
 	{ 0.0F, 0.5F, 0.0F, 1.0F }, // v0
 	{ -0.5F, -0.3F, 0.0F, 1.0F }, // v3
-	{ 0.0F, -0.3F, -0.5F, 1.0F }, // v4
+	{ 0.0F, -0.3F, 0.5F, 1.0F }, // v4
 	// face 3: v0-v4-v1
 	{ 0.0F, 0.5F, 0.0F, 1.0F }, // v0
-	{ 0.0F, -0.3F, -0.5F, 1.0F }, // v4
+	{ 0.0F, -0.3F, 0.5F, 1.0F }, // v4
 	{ 0.5F, -0.3F, 0.0F, 1.0F }, // v1
 	// face 4: v1-v4-v3
 	{ 0.5F, -0.3F, 0.0F, 1.0F }, // v1
-	{ 0.0F, -0.3F, -0.5F, 1.0F }, // v4
+	{ 0.0F, -0.3F, 0.5F, 1.0F }, // v4
 	{ -0.5F, -0.3F, 0.0F, 1.0F }, // v3
 	// face 5: v1-v3-v2
 	{ 0.5F, -0.3F, 0.0F, 1.0F }, // v1
 	{ -0.5F, -0.3F, 0.0F, 1.0F }, // v3
-	{ 0.0F, -0.3F, 0.5F, 1.0F }, // v2
+	{ 0.0F, -0.3F, -0.5F, 1.0F }, // v2
+	// your reference
+#if 0
+	{ 0.0F, 0.5F, 0.0F, 1.0F }, // v0
+	{ 0.5F, -0.3F, 0.0F, 1.0F }, // v1
+	{ 0.0F, -0.3F, -0.5F, 1.0F }, // v2
+	{ -0.5F, -0.3F, 0.0F, 1.0F }, // v3
+	{ 0.0F, -0.3F, 0.5F, 1.0F }, // v4
+#endif
 };
 
 glm::vec4 vertColor[] = {
@@ -86,22 +90,23 @@ glm::vec4 vertColor[] = {
 	{ 0.3F, 1.0F, 1.0F, 1.0F, },
 };
 
+float theta = 0.0F;
+system_clock::time_point lastTime = system_clock::now();
+
+
 void initFunc(void) {
-	const std::string vertStr = loadFile(vertFileName);
-	const std::string fragStr = loadFile(fragFileName);
-	const char* vertSource = vertStr.c_str();
-	const char* fragSource = fragStr.c_str();
-	char buf[1024];
-	GLint status;
+	const std::string vertSource = loadFile(vertFileName);
+	const std::string fragSource = loadFile(fragFileName);
 
-	// Vertex Shader
+	const char* vertShader = vertSource.c_str();
+	const char* fragShader = fragSource.c_str();
+
 	vert = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vert, 1, &vertSource, nullptr);
+	glShaderSource(vert, 1, &vertShader, nullptr);
 	glCompileShader(vert);
-
-	// Fragment Shader
+	
 	frag = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(frag, 1, &fragSource, nullptr);
+	glShaderSource(frag, 1, &fragShader, nullptr);
 	glCompileShader(frag);
 
 	// Program
@@ -111,30 +116,48 @@ void initFunc(void) {
 
 	glLinkProgram(prog);
 	glValidateProgram(prog);
+
 	glUseProgram(prog);
 }
 
+void updateFunc(void) {
+	system_clock::time_point currentTime = system_clock::now();
+	milliseconds elapsedTimeMSEC = duration_cast<milliseconds>(currentTime - lastTime);
+	theta = (elapsedTimeMSEC.count() / 1000.0F) * (float)M_PI_2;
+}
+
+int cullMode = 0;
+
 void drawFunc(void) {
 	glEnable(GL_DEPTH_TEST);
+	glDepthRange(0.0F, 1.0F);
+	glClearDepthf(1.0F);
 
 	switch (cullMode) {
+	default:
 	case 0:
 		break;
+
 	case 1:
+		// Back-Face culling, CCW Facing
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 		glCullFace(GL_BACK);
 		break;
+
 	case 2:
+		// Front-Face Culling, CCW Facing
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 		glCullFace(GL_FRONT);
 		break;
+
 	case 3:
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CW);
 		glCullFace(GL_BACK);
 		break;
+
 	case 4:
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CW);
@@ -142,11 +165,10 @@ void drawFunc(void) {
 		break;
 	}
 
-	glDepthRange(0.0F, 1.0F);
-	glClearDepthf(1.0F);
-
+	// Clear in gray color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Provide the vertex attributes
 	GLuint locPos = glGetAttribLocation(prog, "aPos");
 	glEnableVertexAttribArray(locPos);
 	glVertexAttribPointer(locPos, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(vertPos[0]));
@@ -155,8 +177,13 @@ void drawFunc(void) {
 	glEnableVertexAttribArray(locColor);
 	glVertexAttribPointer(locColor, 4, GL_FLOAT, GL_FALSE, 0, glm::value_ptr(vertColor[0]));
 
+	GLuint locTheta = glGetUniformLocation(prog, "uTheta");
+	glUniform1f(locTheta, theta);
+
+	// Draw the Pyramid
 	glDrawArrays(GL_TRIANGLES, 0, 18);
 
+	// Done
 	glFinish();
 }
 
@@ -172,27 +199,36 @@ void keyFunc(GLFWwindow* window, int key, int scancode, int action, int mods) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 		break;
+	case GLFW_KEY_R:
+		if (action == GLFW_PRESS) {
+			lastTime = system_clock::now();
+		}
+		break;
 
 	case GLFW_KEY_0:
 		if (action == GLFW_PRESS) {
 			cullMode = 0;
 		}
 		break;
+
 	case GLFW_KEY_1:
 		if (action == GLFW_PRESS) {
 			cullMode = 1;
 		}
 		break;
+
 	case GLFW_KEY_2:
 		if (action == GLFW_PRESS) {
 			cullMode = 2;
 		}
 		break;
+
 	case GLFW_KEY_3:
 		if (action == GLFW_PRESS) {
 			cullMode = 3;
 		}
 		break;
+
 	case GLFW_KEY_4:
 		if (action == GLFW_PRESS) {
 			cullMode = 4;
@@ -204,22 +240,22 @@ void keyFunc(GLFWwindow* window, int key, int scancode, int action, int mods) {
 int main(int argc, char* argv[]) {
 	glfwInit();
 	glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-	GLFWwindow* window = glfwCreateWindow(WIN_W, WIN_H, "Pyramid", nullptr, nullptr);
-	glfwSetWindowPos(window, WIN_X, WIN_Y);
+	GLFWwindow* window = glfwCreateWindow(500, 500, "Rotation Pyramid", nullptr, nullptr);
+	glfwSetWindowPos(window, 100, 100);
 	glfwMakeContextCurrent(window);
 	glewInit();
 
 	// Prepare
 	glfwSetWindowRefreshCallback(window, refreshFunc);
 	glfwSetKeyCallback(window, keyFunc);
-
 	glClearColor(0.5F, 0.5F, 0.5F, 1.0F);
 
 	initFunc();
 
 	while (!glfwWindowShouldClose(window)) {
-		//updateFunc()
+		updateFunc();
 		drawFunc();
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
