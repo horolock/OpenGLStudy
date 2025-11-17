@@ -130,7 +130,10 @@
     <ClInclude Include="common.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="draw_arrays_pyramid.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="draw_elements_pyramid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="rotate-nz.frag" />

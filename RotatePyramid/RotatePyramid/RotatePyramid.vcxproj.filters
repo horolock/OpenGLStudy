@@ -20,7 +20,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="draw_arrays_pyramid.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="draw_elements_pyramid.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
